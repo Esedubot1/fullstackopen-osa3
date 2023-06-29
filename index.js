@@ -16,20 +16,6 @@ morgan.token('body', function (req, res) {
 });
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
 
-const errorHandler = (error, req, res, next) => {
-  console.error(error.message)
-
-  if (error.name === 'CastError') {
-    return res.status(400).send({ error: 'malformatted id' })
-  } else if (error.name === 'ValidationError') {
-    return res.status(400).json({ error: error.message })
-  }
-
-  next(error)
-}
-
-app.use(errorHandler)
-
 app.get('/', (req, res) => {
   res.send('<h1>Hello World!</h1>')
 })
@@ -64,13 +50,6 @@ app.get('/api/persons/:id', (req, res, next) => {
 app.post('/api/persons', (req, res, next) => {
   const body = req.body
 
-  if (body.name === undefined) {
-    return res.status(400).json({  error: 'name missing' })
-  }
-  if (body.number === undefined) {
-    return res.status(400).json({  error: 'number missing' })
-  }
-
   const person = new Person({
     name: body.name,
     number: body.number,
@@ -90,6 +69,20 @@ app.delete('/api/persons/:id', (req, res, next) => {
     })
     .catch(error => next(error))
 })
+
+const errorHandler = (error, req, res, next) => {
+  console.error(error.message)
+
+  if (error.name === 'CastError') {
+    return res.status(400).send({ error: 'malformatted id' })
+  } else if (error.name === 'ValidationError') {
+    return res.status(400).json({ error: error.message })
+  }
+
+  next(error)
+}
+
+app.use(errorHandler)
 
 const PORT = process.env.PORT
 app.listen(PORT, () => {
